@@ -1,0 +1,21 @@
+import scrapy
+
+
+class QuotesSpider(scrapy.Spider):
+    name = "q"
+    def start_requests(self):
+        urls = [
+            'https://login.kundelik.kz/login',
+            'http://quotes.toscrape.com/page/2/',
+        ]
+        for url in urls:
+            yield scrapy.Request(url=url, callback=self.parse)
+    
+    def parse(self, response):
+        page = response.url.split("/")[-2]
+        filename = 'quotes-%s.html' % page
+        token = response.xpath('//*[@name="csrf_token"]/@value').extract_first()
+        return FormRequest.from_response(response,formdata={'csrf_token': token,'password': '12345678910111Mk','login': 'kembaevmukhamedzhan'},callback=self.scrape_pages)
+        with open(filename, 'wb') as f:
+            f.write(response.body)
+        self.log('Saved file %s' % filename)
